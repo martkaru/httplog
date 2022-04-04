@@ -2,6 +2,7 @@ package httplog
 
 import (
 	"fmt"
+	"net/http"
 	"os"
 	"strings"
 	"time"
@@ -58,6 +59,9 @@ type Options struct {
 	// TimeFieldName sets the field name for the time field.
 	// Some providers parse and search for different field names.
 	TimeFieldName string
+
+	// CustomLogFunc sets the function that adds additional fields to the request log entry.
+	CustomLogFunc func(r *http.Request) map[string]interface{}
 }
 
 // Configure will set new global/default options for the httplog and behaviour

@@ -75,7 +75,7 @@ func (l *requestLogger) NewLogEntry(r *http.Request) middleware.LogEntry {
 	msg := fmt.Sprintf("Request: %s %s", r.Method, r.URL.Path)
 	entry.Logger = l.Logger.With().Fields(requestLogFields(r, true)).Logger()
 	if !DefaultOptions.Concise {
-		entry.Logger.Info().Fields(requestLogFields(r, DefaultOptions.Concise)).Msgf(msg)
+		entry.Logger.Info().Fields(logFields(r, DefaultOptions.Concise)).Msgf(msg)
 	}
 	return entry
 }
@@ -130,6 +130,27 @@ func (l *RequestLoggerEntry) Panic(v interface{}, stack []byte) {
 	if !DefaultOptions.JSON {
 		middleware.PrintPrettyStack(v)
 	}
+}
+
+// Combines the standard request log fields with the custom fields
+func logFields(r *http.Request, concise bool) map[string]interface{} {
+	fields := requestLogFields(r, concise)
+
+	for k, v := range customLogFields(r) {
+		fields[k] = v
+	}
+
+	return fields
+}
+
+func customLogFields(r *http.Request) map[string]interface{} {
+	result := map[string]interface{}{}
+
+	if customFun := DefaultOptions.CustomLogFunc; customFun != nil {
+		result = customFun(r)
+	}
+
+	return result
 }
 
 func requestLogFields(r *http.Request, concise bool) map[string]interface{} {
